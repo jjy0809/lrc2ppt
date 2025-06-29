@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyrics to PPT Maker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.11.0/dist/pptxgen.bundle.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 플로팅 도움말 버튼 -->
+        <div class="floating-help">
+            <a href="https://reflective-tiglon-21b.notion.site/PPT-1b54c5931bb280609974d20603f3b9c7?pvs=4" target="_blank" class="help-button">
+                <i class="fas fa-question"></i>
+            </a>
+        </div>
+
+        <!-- 프로그레스 바 -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <!-- Step 1: 가사 입력 -->
+        <div class="step active" id="step1">
+            <h1><i class="fa-solid fa-music"></i> 음원 가사 입력</h1>
+            
+            <!-- 가사 붙여넣기 카드 -->
+            <div class="option-card" id="lyricsOption">
+                <div class="option-header">
+                    <i class="fas fa-file-alt"></i>
+                    <h2>가사 붙여넣기</h2>
+                </div>
+                <div class="input-container">
+                    <textarea class="input-field" placeholder="생성하고자 하는 모든 음원의 가사를 붙여넣어 주세요" rows="3"></textarea>
+                    <div class="switch-container">
+                        <label class="switch">
+                            <input type="checkbox" id="emptyLineSwitch" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span>빈 줄 포함</span>
+                    </div>
+                    <button class="icon-button" onclick="processLyrics()" disabled>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <p class="info-text">가사를 외부에서 복사하여 붙여 넣거나 직접 입력 해주세요</p>
+            </div>
+
+            <!-- 추가된 YouTube URL 카드 
+            <div class="option-card" id="youtubeURLOption">
+                <div class="option-header">
+                    <i class="fas fa-link"></i>
+                    <h2>YouTube URL</h2>
+                </div>
+                <div class="input-container">
+                    <input type="text" class="input-field" id="youtubeURL" placeholder="YouTube 영상 URL 입력">
+                    <button class="icon-button" onclick="fetchYouTubeCaption()" disabled>
+                        <i class="fas fa-arrow-right"></i>
+                        <div class="loading-spinner"></div>
+                    </button>
+                </div>
+                <p class="info-text">YouTube 영상 URL을 정확히 입력해주세요</p>
+            </div> -->
+
+            <!-- 가사 검색 카드 -->
+            <div class="option-card" id="linkOption">
+                <div class="option-header">
+                    <i class="fas fa-search"></i>
+                    <h2>가사 검색</h2>
+                </div>
+                <div class="input-container">
+                    <div class="input-row">
+                        <input type="text" class="input-field half-input" id="songTitle" placeholder="곡 제목">
+                        <input type="text" class="input-field half-input" id="artistName" placeholder="아티스트 명">
+                    </div>
+                    <button class="icon-button" onclick="searchLyrics()" disabled>
+                        <i class="fas fa-search"></i>
+                        <div class="loading-spinner"></div>
+                    </button>
+                </div>
+                <p class="info-text">곡 제목과 아티스트를 영어로 입력해주세요</p>
+                <div class="option-column">
+                    <a href="https://lrclib.net/" target="_blank" class="link-text">가사 제공: LRCLIB</a>
+                </div>
+            </div>
+            
+            <!-- 도움말 링크 -->
+            <a href="https://reflective-tiglon-21b.notion.site/PPT-1b54c5931bb280609974d20603f3b9c7?pvs=4" target="_blank" class="help-text">
+                처음이신가요? 도움말을 확인해보세요
+            </a>
+        </div>
+
+        <!-- Step 2: 가사 확인 & 수정 -->
+        <div class="step" id="step2">
+            <h1><i class="fa-solid fa-pen-to-square"></i> 가사 확인 & 수정</h1>
+            <p class="info-text">각 슬라이드는 줄바꿈(Enter)으로 구분됩니다</p>
+            <textarea id="lyricsPreview"></textarea>
+            <div class="button-group">
+                <button class="nav-button prev" onclick="showStep(1)">
+                    <i class="fas fa-arrow-left"></i> 이전
+                </button>
+                <button class="nav-button" id="step2NextBtn" onclick="showStep(3)" disabled>
+                    다음 <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: PPT 옵션 설정 -->
+        <div class="step" id="step3">
+            <div class="option-column">
+                <h1><i class="fa-solid fa-sliders"></i> PPT 옵션 설정</h1>
+                <button id="reset-button" onclick="resetSettings()">설정 초기화</button>
+            </div>
+            <div class="style-grid">
+                <!-- 파일명 설정 -->
+                <div class="style-option-group">
+                    <h3>📁PPT 설정</h3>
+                    <div class="option-label">
+                        <div class="file-name-container">
+                            <input type="text" id="fileName" class="input-field" placeholder="파일명 입력">
+                            <span class="file-extension">.pptx</span>
+                        </div>
+                    </div>
+                    <div class="option-label">
+                        <span class="option-title">빈 슬라이드 포함</span>
+                        <label class="switch">
+                            <input type="checkbox" id="includeEmptySlides" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-label">
+                        <span class="option-title">설정값 기억하기</span>
+                        <label class="switch">
+                            <input type="checkbox" id="optionSave" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 배경 설정 -->
+                <div class="style-option-group">
+                    <h3>🎨 배경 설정</h3>
+                    <div class="option-label">
+                        <span class="option-title">배경 색상</span>
+                        <input type="color" id="bgColor" value="#ffffff">
+                    </div>
+                    <div class="option-column">
+                        <span class="option-title">배경 이미지</span>
+                        <button id="removeImg-button" onclick="removeBackgroundImage()">이미지 삭제</button>
+                    </div>
+                    <div class="image-controls">
+                        <input type="file" id="bgImage" accept="image/*" class="bg-image-input">
+                    </div>
+                </div>
+
+                <!-- 슬라이드 설정 -->
+                <div class="style-option-group">
+                    <h3>🖋️ 가사 설정</h3>
+                    <div class="option-label">
+                        <span class="option-title">가사 글자 크기</span>
+                        <input type="number" id="fontSize" min="20" max="100" value="60">
+                    </div>
+                    <div class="option-label">
+                        <span class="option-title">가사 글자 색상</span>
+                        <input type="color" id="fontColor" value="#000000">
+                    </div>
+                    <div class="option-label">
+                        <span class="option-title">폰트명</span>
+                        <input type="text" id="fontFace" class="input-field" placeholder="맑은 고딕" value="맑은 고딕">
+                    </div>
+                    <div class="option-label">
+                        <span class="option-title">볼드체</span>
+                        <label class="switch">
+                            <input type="checkbox" id="boldOption" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-label">
+                        <span class="option-title">이탤릭체</span>
+                        <label class="switch">
+                            <input type="checkbox" id="italicOption">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-label">
+                        <span class="option-title">가사 라인 모드</span>
+                        <select id="lineMode">
+                            <option value="single">한 줄 모드</option>
+                            <option value="double">두 줄 모드</option>
+                        </select>
+                    </div>
+                    <div class="option-label">
+                        <span class="option-title">자동 줄바꿈</span>
+                        <label class="switch">
+                            <input type="checkbox" id="autoWrap" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+            <!-- 추가 텍스트 설정 -->
+            <div class="style-option-group">
+                <h3>🏷️ 추가 텍스트 설정</h3>
+                <div class="option-label">
+                    <span class="option-title">텍스트 추가</span>
+                    <label class="switch">
+                        <input type="checkbox" id="titleEnable">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="option-label">
+                    <span class="option-title">텍스트 입력</span>
+                    <input type="text" id="titleText" class="input-field" placeholder="추가 텍스트 입력">
+                </div>
+                <div class="option-label">
+                    <span class="option-title">텍스트 크기</span>
+                    <input type="number" id="titleFontSize" min="10" max="72" value="30">
+                </div>
+                <div class="option-label">
+                    <span class="option-title">텍스트 색상</span>
+                    <input type="color" id="titleColor" value="#000000">
+                </div>
+                <div class="option-label">
+                    <span class="option-title">가로 위치</span>
+                    <select id="titleHPosition">
+                        <option value="left">왼쪽</option>
+                        <option value="center" selected>가운데</option>
+                        <option value="right">오른쪽</option>
+                    </select>
+                </div>
+                <div class="option-label">
+                    <span class="option-title">세로 위치</span>
+                    <select id="titleVPosition">
+                        <option value="top" selected>상단</option>
+                        <option value="bottom">하단</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+            <div class="button-group">
+                <button class="nav-button prev" onclick="showStep(2)">
+                    <i class="fas fa-arrow-left"></i> 이전
+                </button>
+                <a href="https://reflective-tiglon-21b.notion.site/PPT-1b54c5931bb280609974d20603f3b9c7?pvs=4" target="_blank" class="help-text">
+                    옵션에 대한 자세한 설명이 필요하신가요?
+                </a>
+                <button class="nav-button" onclick="showStep(4)">
+                    다음 <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: 생성 & 다운로드 -->
+        <div class="step" id="step4">
+            <h1><i class="fa-solid fa-circle-check"></i> 생성 & 다운로드</h1>
+            <div class="hcaptcha-container">
+                <div class="h-captcha" data-sitekey="f3f4b934-1f9e-461c-bfd6-14be40acf8d0" data-callback="enableGenerateBtn"></div>
+            </div>
+            <a href="https://reflective-tiglon-21b.notion.site/PPT-1b54c5931bb280609974d20603f3b9c7?pvs=4" target="_blank"  class="help-text">
+                다운로드를 진행하면 이용약관을 동의하게 됩니다
+            </a>
+            <div class="button-group final-buttons">
+                <button class="nav-button prev" onclick="showStep(3)">
+                    <i class="fas fa-arrow-left"></i> 이전
+                </button>
+                <button class="nav-button" id="finalGenerateBtn" onclick="generateFinalPPT()" disabled>
+                    <span>다운로드</span>
+                    <i class="fas fa-download"></i>
+                    <div class="loading-spinner"></div>
+                </button>
+                <button class="nav-button" onclick="location.reload()">
+                    처음으로 <i class="fas fa-home"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
