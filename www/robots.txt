@@ -1,0 +1,47 @@
+User-agent: Googlebot
+Allow: /
+
+User-agent: Yeti
+Allow: /
+
+User-agent: daumoa
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Yahoo!
+Allow: /
+
+User-agent:  YandexBot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: OpenAI bot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: kakao crawler
+Allow: /
+
+User-agent: *
+Disallow: /
